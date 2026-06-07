@@ -5,12 +5,12 @@ import { authMiddleware } from './middleware';
 import { createSuccessResponse } from './errors';
 import { Errors } from './errors';
 
-export async function handleGetPrivateChats(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleGetPrivateChats(request: Request, env: Env): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
   const chats = await db.getUserPrivateChats(user.id);
 
-  const enrichedChats = await Promise.all(chats.map(async chat =&gt; {
+  const enrichedChats = await Promise.all(chats.map(async chat => {
     const otherUserId = chat.user1_id === user.id ? chat.user2_id : chat.user1_id;
     const otherUser = await db.getUserById(otherUserId);
     return { ...chat, other_user: otherUser };
@@ -19,9 +19,9 @@ export async function handleGetPrivateChats(request: Request, env: Env): Promise
   return createSuccessResponse(enrichedChats);
 }
 
-export async function handleCreatePrivateChat(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleCreatePrivateChat(request: Request, env: Env): Promise<Response> {
   const user = await authMiddleware(request, env);
-  const body = await request.json&lt;any&gt;();
+  const body = await request.json<any>();
   const { target_user_id } = body;
 
   if (!target_user_id) {
@@ -42,7 +42,7 @@ export async function handleCreatePrivateChat(request: Request, env: Env): Promi
   return createSuccessResponse({ ...chat, other_user: targetUser });
 }
 
-export async function handleGetPrivateChatMessages(request: Request, env: Env, chatId: string): Promise&lt;Response&gt; {
+export async function handleGetPrivateChatMessages(request: Request, env: Env, chatId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -51,7 +51,7 @@ export async function handleGetPrivateChatMessages(request: Request, env: Env, c
     throw Errors.NotFound('聊天不存在');
   }
 
-  if (chat.user1_id !== user.id &amp;&amp; chat.user2_id !== user.id) {
+  if (chat.user1_id !== user.id && chat.user2_id !== user.id) {
     throw Errors.Forbidden();
   }
 
@@ -63,12 +63,12 @@ export async function handleGetPrivateChatMessages(request: Request, env: Env, c
   return createSuccessResponse(messages);
 }
 
-export async function handleSendPrivateChatMessage(request: Request, env: Env, chatId: string): Promise&lt;Response&gt; {
+export async function handleSendPrivateChatMessage(request: Request, env: Env, chatId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
-  const body = await request.json&lt;any&gt;();
+  const body = await request.json<any>();
   const { content } = body;
 
-  if (!content || content.length &gt; 5000) {
+  if (!content || content.length > 5000) {
     throw Errors.InvalidParams('消息内容不能为空且不能超过5000字符');
   }
 
@@ -78,7 +78,7 @@ export async function handleSendPrivateChatMessage(request: Request, env: Env, c
     throw Errors.NotFound('聊天不存在');
   }
 
-  if (chat.user1_id !== user.id &amp;&amp; chat.user2_id !== user.id) {
+  if (chat.user1_id !== user.id && chat.user2_id !== user.id) {
     throw Errors.Forbidden();
   }
 

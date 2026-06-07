@@ -57,7 +57,7 @@ export interface AuthResult {
   user: User;
 }
 
-export interface ApiResponse&lt;T = any&gt; {
+export interface ApiResponse<T = any> {
   data?: T;
   error?: ApiError;
 }

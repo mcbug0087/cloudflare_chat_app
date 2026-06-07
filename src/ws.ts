@@ -8,7 +8,7 @@ interface WebSocketWithMetadata extends WebSocket {
 }
 
 export class ChatRoom {
-  private sessions: Map&lt;string, WebSocketWithMetadata&gt; = new Map();
+  private sessions: Map<string, WebSocketWithMetadata> = new Map();
   private state: DurableObjectState;
   private env: Env;
 
@@ -17,7 +17,7 @@ export class ChatRoom {
     this.env = env;
   }
 
-  async fetch(request: Request): Promise&lt;Response&gt; {
+  async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/ws') {
@@ -35,7 +35,7 @@ export class ChatRoom {
     return new Response('Not found', { status: 404 });
   }
 
-  private async handleWebSocket(request: Request): Promise&lt;Response&gt; {
+  private async handleWebSocket(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
 
@@ -60,7 +60,7 @@ export class ChatRoom {
 
     this.broadcast({ type: 'user_online', user_id: user.id, nickname: user.nickname });
 
-    server.addEventListener('message', async (event) =&gt; {
+    server.addEventListener('message', async (event) => {
       try {
         const message = JSON.parse(event.data as string);
         await this.handleClientMessage(user, message, server);
@@ -69,12 +69,12 @@ export class ChatRoom {
       }
     });
 
-    server.addEventListener('close', () =&gt; {
+    server.addEventListener('close', () => {
       this.sessions.delete(user.id);
       this.broadcast({ type: 'user_offline', user_id: user.id });
     });
 
-    server.addEventListener('error', () =&gt; {
+    server.addEventListener('error', () => {
       this.sessions.delete(user.id);
       this.broadcast({ type: 'user_offline', user_id: user.id });
     });
@@ -85,7 +85,7 @@ export class ChatRoom {
     });
   }
 
-  private async handleClientMessage(user: User, message: any, ws: WebSocketWithMetadata): Promise&lt;void&gt; {
+  private async handleClientMessage(user: User, message: any, ws: WebSocketWithMetadata): Promise<void> {
     switch (message.type) {
       case 'ping':
         ws.send(JSON.stringify({ type: 'pong' }));
@@ -104,8 +104,8 @@ export class ChatRoom {
     }
   }
 
-  private async handleNewMessage(request: Request): Promise&lt;Response&gt; {
-    const data = await request.json&lt;any&gt;();
+  private async handleNewMessage(request: Request): Promise<Response> {
+    const data = await request.json<any>();
     this.broadcast({
       type: 'new_message',
       chat_type: data.chat_type,
@@ -115,8 +115,8 @@ export class ChatRoom {
     return new Response('OK');
   }
 
-  private async handleGroupUpdate(request: Request): Promise&lt;Response&gt; {
-    const data = await request.json&lt;any&gt;();
+  private async handleGroupUpdate(request: Request): Promise<Response> {
+    const data = await request.json<any>();
     this.broadcast({
       type: 'group_update',
       chat_id: data.chat_id,
@@ -128,7 +128,7 @@ export class ChatRoom {
 
   private broadcast(message: any): void {
     const messageStr = JSON.stringify(message);
-    this.sessions.forEach(ws =&gt; {
+    this.sessions.forEach(ws => {
       try {
         ws.send(messageStr);
       } catch (e) {
@@ -138,7 +138,7 @@ export class ChatRoom {
   }
 }
 
-export async function handleWebSocket(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleWebSocket(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
   const chatId = url.searchParams.get('chat_id');

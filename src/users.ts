@@ -5,26 +5,26 @@ import { authMiddleware } from './middleware';
 import { createSuccessResponse } from './errors';
 import { register, login } from './auth';
 
-export async function handleRegister(request: Request, env: Env): Promise&lt;Response&gt; {
-  const body = await request.json&lt;any&gt;();
+export async function handleRegister(request: Request, env: Env): Promise<Response> {
+  const body = await request.json<any>();
   const { nickname } = body;
   const result = await register(nickname, env);
   return createSuccessResponse(result);
 }
 
-export async function handleLogin(request: Request, env: Env): Promise&lt;Response&gt; {
-  const body = await request.json&lt;any&gt;();
+export async function handleLogin(request: Request, env: Env): Promise<Response> {
+  const body = await request.json<any>();
   const { nickname } = body;
   const result = await login(nickname, env);
   return createSuccessResponse(result);
 }
 
-export async function handleGetMe(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleGetMe(request: Request, env: Env): Promise<Response> {
   const user = await authMiddleware(request, env);
   return createSuccessResponse(user);
 }
 
-export async function handleSearchUsers(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleSearchUsers(request: Request, env: Env): Promise<Response> {
   const user = await authMiddleware(request, env);
   const url = new URL(request.url);
   const query = url.searchParams.get('q') || '';

@@ -3,7 +3,7 @@
 
 ## 基础信息
 - 所有 API 路径前缀为 `/api`
-- 除注册和登录外，所有请求需在 Header 中携带 `Authorization: Bearer &lt;token&gt;`
+- 除注册和登录外，所有请求需在 Header 中携带 `Authorization: Bearer <token>`
 - 所有响应格式为 `{ data?: any, error?: { code: string, message: string } }`
 
 ## 认证接口
@@ -114,7 +114,7 @@ Response:
 
 ### 获取私聊消息
 ```
-GET /api/chats/private/:chatId/messages?before=&amp;limit=50
+GET /api/chats/private/:chatId/messages?before=&limit=50
 
 Response:
 {
@@ -285,7 +285,7 @@ Response:
 
 ### 获取群聊消息
 ```
-GET /api/groups/:groupId/messages?before=&amp;limit=50
+GET /api/groups/:groupId/messages?before=&limit=50
 
 Response: 同私聊消息
 ```
@@ -306,16 +306,16 @@ Response: 同私聊消息
 
 ### 连接
 ```
-wss://your-domain/ws?token=&lt;session_token&gt;&amp;chat_id=&lt;chat_id&gt;&amp;chat_type=private|group
+wss://your-domain/ws?token=<session_token>&chat_id=<chat_id>&chat_type=private|group
 ```
 
-### 客户端 -&gt; 服务端消息
+### 客户端 -> 服务端消息
 ```json
 { "type": "ping" }
 { "type": "typing", "chat_id": "xxx", "chat_type": "private|group", "is_typing": true }
 ```
 
-### 服务端 -&gt; 客户端消息
+### 服务端 -> 客户端消息
 ```json
 { "type": "pong" }
 { "type": "user_online", "user_id": "xxx", "nickname": "xxx" }
