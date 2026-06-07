@@ -2,7 +2,8 @@ name = "cloudflare-chat-app"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
-[d1_databases]
+[[d1_databases]]
+binding = "DB"
 database_name = "chat-db"
 database_id = "d4213c6e-6fd7-425b-8cea-da56a33b6d65"
 
@@ -13,3 +14,7 @@ id = "945ff7625f9c458697b0429bc4ac7ce0"
 [[durable_objects.bindings]]
 name = "CHAT_ROOM"
 class_name = "ChatRoom"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatRoom"]
