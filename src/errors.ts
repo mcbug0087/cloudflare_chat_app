@@ -1,0 +1,46 @@
+
+import { ApiError } from './types';
+
+export class AppError extends Error {
+  code: string;
+  statusCode: number;
+
+  constructor(code: string, message: string, statusCode: number = 400) {
+    super(message);
+    this.code = code;
+    this.statusCode = statusCode;
+    this.name = 'AppError';
+  }
+}
+
+export function createErrorResponse(error: AppError): Response {
+  const body: { error: ApiError } = {
+    error: {
+      code: error.code,
+      message: error.message
+    }
+  };
+  return new Response(JSON.stringify(body), {
+    status: error.statusCode,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+export function createSuccessResponse&lt;T&gt;(data: T): Response {
+  return new Response(JSON.stringify({ data }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+export const Errors = {
+  InvalidParams: (message: string = '参数校验失败') =&gt; new AppError('INVALID_PARAMS', message, 400),
+  Unauthorized: (message: string = 'Token 无效或过期') =&gt; new AppError('UNAUTHORIZED', message, 401),
+  Forbidden: (message: string = '无操作权限') =&gt; new AppError('FORBIDDEN', message, 403),
+  NotFound: (message: string = '资源不存在') =&gt; new AppError('NOT_FOUND', message, 404),
+  NicknameTaken: (message: string = '该昵称已被使用') =&gt; new AppError('NICKNAME_TAKEN', message, 409),
+  GroupDisbanded: (message: string = '群聊已解散') =&gt; new AppError('GROUP_DISBANDED', message, 410),
+  CannotKickSelf: (message: string = '不能踢自己') =&gt; new AppError('CANNOT_KICK_SELF', message, 422),
+  CannotKickAdmin: (message: string = '管理员不能踢管理员/群主') =&gt; new AppError('CANNOT_KICK_ADMIN', message, 422),
+};
+
