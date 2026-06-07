@@ -2,6 +2,7 @@ CREATE TABLE users (
   id TEXT PRIMARY KEY,
   nickname TEXT NOT NULL UNIQUE COLLATE NOCASE,
   nickname_lower TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 

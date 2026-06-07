@@ -130,10 +130,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .auth-page{display:flex;align-items:center;justify-content:center;height:100dvh;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px}
 .auth-card{background:#fff;padding:36px 28px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);width:100%;max-width:380px}
 .auth-card h1{text-align:center;color:#333;margin-bottom:28px;font-size:24px}
-.auth-card input{width:100%;padding:14px 16px;border:1px solid #ddd;border-radius:10px;margin-bottom:16px;font-size:16px;outline:none}
+.auth-card input{width:100%;padding:14px 16px;border:1px solid #ddd;border-radius:10px;margin-bottom:14px;font-size:16px;outline:none}
 .auth-card input:focus{border-color:#667eea}
-.auth-card button{width:100%;padding:14px;background:#667eea;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;transition:background .2s}
+.auth-card input[type="password"]{font-family:monospace;letter-spacing:2px}
+.auth-card button{width:100%;padding:14px;background:#667eea;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;transition:background .2s;margin-bottom:8px}
 .auth-card button:hover{background:#5a6fd6}
+.auth-card .btn-reg{background:#27ae60}
+.auth-card .btn-reg:hover{background:#219a52}
 
 .chat-app{display:flex;height:100dvh;overflow:hidden}
 .sidebar{width:280px;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;flex-shrink:0}
@@ -238,19 +241,33 @@ function clearToken(){token=null;currentUser=null;localStorage.removeItem('chat_
 // AUTH
 function renderAuth(){
   const a=document.getElementById('app');
-  a.innerHTML=\`<div class="auth-page"><div class="auth-card"><h1>Cloudflare Chat</h1><input id="nicknameInp" placeholder="输入昵称（1-20字符）" maxlength="20"><button onclick="doAuth()">登录 / 注册</button></div></div>\`;
+  a.innerHTML=\`<div class="auth-page"><div class="auth-card"><h1>Cloudflare Chat</h1><input id="nicknameInp" placeholder="昵称（1-20字符）" maxlength="20"><input id="passwordInp" type="password" placeholder="密码（至少6位）" minlength="6"><button onclick="doLogin()">登录</button><button class="btn-reg" onclick="doRegister()">注册</button></div></div>\`;
 }
 
-async function doAuth(){
+async function doLogin(){
   const n=document.getElementById('nicknameInp').value.trim();
+  const p=document.getElementById('passwordInp').value;
   if(!n)return toast('请输入昵称');
+  if(!p||p.length<6)return toast('密码至少6位');
   try{
-    let r=await api('/auth/login',{method:'POST',body:JSON.stringify({nickname:n})});
-    if(r.error&&r.error.code==='NOT_FOUND')r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n})});
+    const r=await api('/auth/login',{method:'POST',body:JSON.stringify({nickname:n,password:p})});
     if(r.error){toast(r.error.message);return}
     setToken(r.data.token,r.data.user);
     renderApp();
   }catch(e){toast('登录失败')}
+}
+
+async function doRegister(){
+  const n=document.getElementById('nicknameInp').value.trim();
+  const p=document.getElementById('passwordInp').value;
+  if(!n)return toast('请输入昵称');
+  if(!p||p.length<6)return toast('密码至少6位');
+  try{
+    const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p})});
+    if(r.error){toast(r.error.message);return}
+    setToken(r.data.token,r.data.user);
+    renderApp();
+  }catch(e){toast('注册失败')}
 }
 
 // APP
@@ -561,7 +578,7 @@ function doLogout(){if(confirm('确认退出登录？')){clearToken();renderAuth
 //KEY BINDINGS
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&document.getElementById('msgInput')===document.activeElement){sendMsg()}
-  else if(e.key==='Enter'&&document.getElementById('nicknameInp')===document.activeElement){doAuth()}
+  else if(e.key==='Enter'&&document.getElementById('passwordInp')===document.activeElement){doLogin()}
 });
 
 //INIT

@@ -36,10 +36,10 @@ export class DB {
     return result.results;
   }
 
-  async createUser(nickname: string): Promise<User> {
+  async createUser(nickname: string, passwordHash: string): Promise<User> {
     const id = generateId();
     const nicknameLower = nickname.toLowerCase();
-    await this.db.prepare('INSERT INTO users (id, nickname, nickname_lower) VALUES (?, ?, ?)').bind(id, nickname, nicknameLower).run();
+    await this.db.prepare('INSERT INTO users (id, nickname, nickname_lower, password_hash) VALUES (?, ?, ?, ?)').bind(id, nickname, nicknameLower, passwordHash).run();
     return this.getUserById(id) as Promise<User>;
   }
 
