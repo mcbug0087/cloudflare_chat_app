@@ -1,4 +1,3 @@
-
 import { Env } from './types';
 import { DB } from './db';
 import { authMiddleware } from './middleware';
@@ -7,15 +6,15 @@ import { register, login } from './auth';
 
 export async function handleRegister(request: Request, env: Env): Promise<Response> {
   const body = await request.json<any>();
-  const { nickname } = body;
-  const result = await register(nickname, env);
+  const { nickname, password } = body;
+  const result = await register(nickname, password, env);
   return createSuccessResponse(result);
 }
 
 export async function handleLogin(request: Request, env: Env): Promise<Response> {
   const body = await request.json<any>();
-  const { nickname } = body;
-  const result = await login(nickname, env);
+  const { nickname, password } = body;
+  const result = await login(nickname, password, env);
   return createSuccessResponse(result);
 }
 
@@ -32,4 +31,3 @@ export async function handleSearchUsers(request: Request, env: Env): Promise<Res
   const users = await db.searchUsers(query);
   return createSuccessResponse(users);
 }
-

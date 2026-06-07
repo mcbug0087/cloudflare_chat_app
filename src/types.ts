@@ -2,6 +2,7 @@ export interface User {
   id: string;
   nickname: string;
   nickname_lower: string;
+  password_hash: string;
   created_at: number;
 }
 

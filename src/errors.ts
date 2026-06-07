@@ -42,5 +42,6 @@ export const Errors = {
   GroupDisbanded: (message: string = '群聊已解散') => new AppError('GROUP_DISBANDED', message, 410),
   CannotKickSelf: (message: string = '不能踢自己') => new AppError('CANNOT_KICK_SELF', message, 422),
   CannotKickAdmin: (message: string = '管理员不能踢管理员/群主') => new AppError('CANNOT_KICK_ADMIN', message, 422),
+  WrongPassword: (message: string = '密码错误') => new AppError('WRONG_PASSWORD', message, 401),
 };
 
