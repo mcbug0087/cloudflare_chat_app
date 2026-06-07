@@ -1,9 +1,16 @@
-
 import { User, PrivateChat, Group, GroupMember, Message, Invitation } from './types';
 import { Errors } from './errors';
 
 export function generateId(): string {
   return crypto.randomUUID();
+}
+
+export function generateGroupCode(): string {
+  let code = '';
+  for (let i = 0; i < 9; i++) {
+    code += Math.floor(Math.random() * 10).toString();
+  }
+  return code;
 }
 
 export class DB {
@@ -64,13 +71,24 @@ export class DB {
 
   async createGroup(name: string, ownerId: string): Promise<Group> {
     const id = generateId();
-    await this.db.prepare('INSERT INTO groups (id, name, owner_id) VALUES (?, ?, ?)').bind(id, name, ownerId).run();
+    let groupCode = generateGroupCode();
+    let existing = await this.getGroupByCode(groupCode);
+    while (existing) {
+      groupCode = generateGroupCode();
+      existing = await this.getGroupByCode(groupCode);
+    }
+    await this.db.prepare('INSERT INTO groups (id, name, owner_id, group_code) VALUES (?, ?, ?, ?)').bind(id, name, ownerId, groupCode).run();
     await this.db.prepare('INSERT INTO group_members (group_id, user_id, role) VALUES (?, ?, ?)').bind(id, ownerId, 'owner').run();
     return this.getGroupById(id) as Promise<Group>;
   }
 
   async getGroupById(id: string): Promise<Group | null> {
     const result = await this.db.prepare('SELECT * FROM groups WHERE id = ?').bind(id).first<Group>();
+    return result;
+  }
+
+  async getGroupByCode(code: string): Promise<Group | null> {
+    const result = await this.db.prepare('SELECT * FROM groups WHERE group_code = ?').bind(code).first<Group>();
     return result;
   }
 
@@ -97,6 +115,10 @@ export class DB {
     await this.db.prepare('UPDATE group_members SET role = ? WHERE group_id = ? AND user_id = ?').bind(role, groupId, userId).run();
   }
 
+  async updateGroupMemberNickname(groupId: string, userId: string, groupNickname: string): Promise<void> {
+    await this.db.prepare('UPDATE group_members SET group_nickname = ? WHERE group_id = ? AND user_id = ?').bind(groupNickname, groupId, userId).run();
+  }
+
   async removeGroupMember(groupId: string, userId: string): Promise<void> {
     await this.db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').bind(groupId, userId).run();
   }
@@ -111,6 +133,10 @@ export class DB {
 
   async disbandGroup(groupId: string): Promise<void> {
     await this.db.prepare('UPDATE groups SET is_active = 0 WHERE id = ?').bind(groupId).run();
+  }
+
+  async deleteGroupMessages(groupId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM messages WHERE chat_type = ? AND chat_id = ?').bind('group', groupId).run();
   }
 
   async createMessage(chatType: 'private' | 'group', chatId: string, senderId: string, content: string): Promise<Message> {
@@ -155,5 +181,33 @@ export class DB {
   async updateInvitationStatus(id: string, status: 'pending' | 'accepted' | 'rejected'): Promise<void> {
     await this.db.prepare('UPDATE invitations SET status = ? WHERE id = ?').bind(status, id).run();
   }
-}
 
+  async addFriend(userId: string, friendId: string, remark: string = ''): Promise<void> {
+    await this.db.prepare('INSERT OR IGNORE INTO friends (user_id, friend_id, remark) VALUES (?, ?, ?)').bind(userId, friendId, remark).run();
+    await this.db.prepare('INSERT OR IGNORE INTO friends (user_id, friend_id, remark) VALUES (?, ?, ?)').bind(friendId, userId, '').run();
+  }
+
+  async removeFriend(userId: string, friendId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)')
+      .bind(userId, friendId, friendId, userId).run();
+  }
+
+  async updateFriendRemark(userId: string, friendId: string, remark: string): Promise<void> {
+    await this.db.prepare('UPDATE friends SET remark = ? WHERE user_id = ? AND friend_id = ?').bind(remark, userId, friendId).run();
+  }
+
+  async getFriends(userId: string): Promise<any[]> {
+    const result = await this.db.prepare(`
+      SELECT f.friend_id as id, u.nickname, f.remark, f.created_at
+      FROM friends f INNER JOIN users u ON f.friend_id = u.id
+      WHERE f.user_id = ?
+      ORDER BY u.nickname
+    `).bind(userId).all<any>();
+    return result.results;
+  }
+
+  async isFriend(userId: string, friendId: string): Promise<boolean> {
+    const result = await this.db.prepare('SELECT 1 FROM friends WHERE user_id = ? AND friend_id = ?').bind(userId, friendId).first();
+    return !!result;
+  }
+}
