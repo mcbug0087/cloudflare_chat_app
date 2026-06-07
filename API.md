@@ -11,7 +11,7 @@
 ```
 POST /api/auth/register
 Content-Type: application/json
-{ "nickname": "用户昵称" }
+{ "nickname": "用户昵称", "password": "密码（至少6位）" }
 Response: { "data": { "token": "...", "user": { ... } } }
 ```
 
@@ -19,7 +19,7 @@ Response: { "data": { "token": "...", "user": { ... } } }
 ```
 POST /api/auth/login
 Content-Type: application/json
-{ "nickname": "用户昵称" }
+{ "nickname": "用户昵称", "password": "密码" }
 Response: 同注册
 ```
 
@@ -173,6 +173,7 @@ POST /api/groups/:groupId/messages
 |--------|--------|------|
 | 400 | INVALID_PARAMS | 参数校验失败 |
 | 401 | UNAUTHORIZED | Token 无效或过期 |
+| 401 | WRONG_PASSWORD | 密码错误 |
 | 403 | FORBIDDEN | 无操作权限 |
 | 404 | NOT_FOUND | 资源不存在 |
 | 409 | NICKNAME_TAKEN | 昵称已被占用 |
