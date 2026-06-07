@@ -1,9 +1,16 @@
-
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
   nickname TEXT NOT NULL UNIQUE COLLATE NOCASE,
   nickname_lower TEXT NOT NULL UNIQUE,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE TABLE friends (
+  user_id TEXT NOT NULL REFERENCES users(id),
+  friend_id TEXT NOT NULL REFERENCES users(id),
+  remark TEXT DEFAULT '',
+  created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  PRIMARY KEY(user_id, friend_id)
 );
 
 CREATE TABLE private_chats (
@@ -18,6 +25,7 @@ CREATE TABLE groups (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   owner_id TEXT NOT NULL REFERENCES users(id),
+  group_code TEXT NOT NULL UNIQUE,
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
@@ -26,6 +34,7 @@ CREATE TABLE group_members (
   group_id TEXT NOT NULL REFERENCES groups(id),
   user_id TEXT NOT NULL REFERENCES users(id),
   role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('owner','admin','member')),
+  group_nickname TEXT DEFAULT '',
   joined_at INTEGER NOT NULL DEFAULT (unixepoch()),
   PRIMARY KEY(group_id, user_id)
 );
@@ -49,4 +58,3 @@ CREATE TABLE invitations (
   status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','accepted','rejected')),
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
-

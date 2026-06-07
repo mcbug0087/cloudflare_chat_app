@@ -1,4 +1,3 @@
-
 import { Env } from './types';
 import { DB } from './db';
 import { authMiddleware } from './middleware';
@@ -41,7 +40,26 @@ export async function handleGetGroup(request: Request, env: Env, groupId: string
   }
 
   const members = await db.getGroupMembers(groupId);
-  return createSuccessResponse({ group, members });
+  const myRole = member.role;
+  return createSuccessResponse({ group, members, my_role: myRole });
+}
+
+export async function handleSearchGroupByCode(request: Request, env: Env): Promise<Response> {
+  await authMiddleware(request, env);
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code') || '';
+
+  if (!code || code.length !== 9) {
+    throw Errors.InvalidParams('群号必须为9位数字');
+  }
+
+  const db = new DB(env.DB);
+  const group = await db.getGroupByCode(code);
+  if (!group) {
+    throw Errors.NotFound('群不存在');
+  }
+
+  return createSuccessResponse({ id: group.id, name: group.name, group_code: group.group_code });
 }
 
 export async function handleUpdateGroup(request: Request, env: Env, groupId: string): Promise<Response> {
@@ -95,6 +113,7 @@ export async function handleDisbandGroup(request: Request, env: Env, groupId: st
     throw Errors.Forbidden();
   }
 
+  await db.deleteGroupMessages(groupId);
   await db.disbandGroup(groupId);
 
   const durableObjId = env.CHAT_ROOM.idFromName(`group:${groupId}`);
@@ -294,6 +313,83 @@ export async function handleSetAdmin(request: Request, env: Env, groupId: string
   return createSuccessResponse({ success: true });
 }
 
+export async function handleInviteToGroup(request: Request, env: Env, groupId: string): Promise<Response> {
+  const user = await authMiddleware(request, env);
+  const body = await request.json<any>();
+  const { target_user_id } = body;
+
+  if (!target_user_id) {
+    throw Errors.InvalidParams('目标用户ID不能为空');
+  }
+
+  const db = new DB(env.DB);
+  const group = await db.getGroupById(groupId);
+  if (!group) {
+    throw Errors.NotFound('群不存在');
+  }
+
+  if (!group.is_active) {
+    throw Errors.GroupDisbanded();
+  }
+
+  const currentMember = await db.getGroupMember(groupId, user.id);
+  if (!currentMember || (currentMember.role !== 'owner' && currentMember.role !== 'admin')) {
+    throw Errors.Forbidden();
+  }
+
+  const targetUser = await db.getUserById(target_user_id);
+  if (!targetUser) {
+    throw Errors.NotFound('目标用户不存在');
+  }
+
+  const existingMember = await db.getGroupMember(groupId, target_user_id);
+  if (existingMember) {
+    throw Errors.InvalidParams('该用户已在群中');
+  }
+
+  await db.addGroupMember(groupId, target_user_id);
+
+  const durableObjId = env.CHAT_ROOM.idFromName(`group:${groupId}`);
+  const durableObj = env.CHAT_ROOM.get(durableObjId);
+  await durableObj.fetch(`http://durable/group-update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: groupId, action: 'member_join', data: { user_id: target_user_id, nickname: targetUser.nickname } })
+  });
+
+  return createSuccessResponse({ success: true });
+}
+
+export async function handleSetGroupNickname(request: Request, env: Env, groupId: string, targetUserId: string): Promise<Response> {
+  const user = await authMiddleware(request, env);
+  const body = await request.json<any>();
+  const { group_nickname } = body;
+
+  const db = new DB(env.DB);
+  const group = await db.getGroupById(groupId);
+  if (!group) {
+    throw Errors.NotFound('群不存在');
+  }
+
+  if (!group.is_active) {
+    throw Errors.GroupDisbanded();
+  }
+
+  const currentMember = await db.getGroupMember(groupId, user.id);
+  if (!currentMember || (currentMember.role !== 'owner' && currentMember.role !== 'admin')) {
+    throw Errors.Forbidden();
+  }
+
+  const targetMember = await db.getGroupMember(groupId, targetUserId);
+  if (!targetMember) {
+    throw Errors.NotFound('目标用户不是群成员');
+  }
+
+  await db.updateGroupMemberNickname(groupId, targetUserId, group_nickname || '');
+
+  return createSuccessResponse({ success: true, group_nickname: group_nickname || '' });
+}
+
 export async function handleGetGroupMessages(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
@@ -342,14 +438,16 @@ export async function handleSendGroupMessage(request: Request, env: Env, groupId
 
   const message = await db.createMessage('group', groupId, user.id, content);
 
+  const memberData = await db.getGroupMember(groupId, user.id);
+  const displayName = (memberData && memberData.group_nickname) ? memberData.group_nickname : user.nickname;
+
   const durableObjId = env.CHAT_ROOM.idFromName(`group:${groupId}`);
   const durableObj = env.CHAT_ROOM.get(durableObjId);
   await durableObj.fetch(`http://durable/new-message`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_type: 'group', chat_id: groupId, message: { ...message, nickname: user.nickname } })
+    body: JSON.stringify({ chat_type: 'group', chat_id: groupId, message: { ...message, nickname: displayName } })
   });
 
-  return createSuccessResponse({ ...message, nickname: user.nickname });
+  return createSuccessResponse({ ...message, nickname: displayName });
 }
-

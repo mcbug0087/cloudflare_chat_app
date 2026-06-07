@@ -1,8 +1,21 @@
-
 export interface User {
   id: string;
   nickname: string;
   nickname_lower: string;
+  created_at: number;
+}
+
+export interface Friend {
+  user_id: string;
+  friend_id: string;
+  remark: string;
+  created_at: number;
+}
+
+export interface FriendInfo {
+  id: string;
+  nickname: string;
+  remark: string;
   created_at: number;
 }
 
@@ -17,6 +30,7 @@ export interface Group {
   id: string;
   name: string;
   owner_id: string;
+  group_code: string;
   is_active: number;
   created_at: number;
 }
@@ -25,6 +39,7 @@ export interface GroupMember {
   group_id: string;
   user_id: string;
   role: 'owner' | 'admin' | 'member';
+  group_nickname: string;
   joined_at: number;
 }
 
@@ -78,4 +93,3 @@ export interface ChatSubscription {
   chat_id: string;
   chat_type: ChatType;
 }
-
