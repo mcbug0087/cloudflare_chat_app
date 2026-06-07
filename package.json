@@ -1,0 +1,19 @@
+{
+  "name": "cloudflare-chat-app",
+  "version": "1.0.0",
+  "description": "A real-time chat application built on Cloudflare Workers",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply chat-db"
+  },
+  "keywords": ["cloudflare", "workers", "chat"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.25.0"
+  }
+}
