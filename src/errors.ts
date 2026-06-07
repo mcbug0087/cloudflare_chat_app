@@ -26,7 +26,7 @@ export function createErrorResponse(error: AppError): Response {
   });
 }
 
-export function createSuccessResponse&lt;T&gt;(data: T): Response {
+export function createSuccessResponse<T>(data: T): Response {
   return new Response(JSON.stringify({ data }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }
@@ -34,13 +34,13 @@ export function createSuccessResponse&lt;T&gt;(data: T): Response {
 }
 
 export const Errors = {
-  InvalidParams: (message: string = '参数校验失败') =&gt; new AppError('INVALID_PARAMS', message, 400),
-  Unauthorized: (message: string = 'Token 无效或过期') =&gt; new AppError('UNAUTHORIZED', message, 401),
-  Forbidden: (message: string = '无操作权限') =&gt; new AppError('FORBIDDEN', message, 403),
-  NotFound: (message: string = '资源不存在') =&gt; new AppError('NOT_FOUND', message, 404),
-  NicknameTaken: (message: string = '该昵称已被使用') =&gt; new AppError('NICKNAME_TAKEN', message, 409),
-  GroupDisbanded: (message: string = '群聊已解散') =&gt; new AppError('GROUP_DISBANDED', message, 410),
-  CannotKickSelf: (message: string = '不能踢自己') =&gt; new AppError('CANNOT_KICK_SELF', message, 422),
-  CannotKickAdmin: (message: string = '管理员不能踢管理员/群主') =&gt; new AppError('CANNOT_KICK_ADMIN', message, 422),
+  InvalidParams: (message: string = '参数校验失败') => new AppError('INVALID_PARAMS', message, 400),
+  Unauthorized: (message: string = 'Token 无效或过期') => new AppError('UNAUTHORIZED', message, 401),
+  Forbidden: (message: string = '无操作权限') => new AppError('FORBIDDEN', message, 403),
+  NotFound: (message: string = '资源不存在') => new AppError('NOT_FOUND', message, 404),
+  NicknameTaken: (message: string = '该昵称已被使用') => new AppError('NICKNAME_TAKEN', message, 409),
+  GroupDisbanded: (message: string = '群聊已解散') => new AppError('GROUP_DISBANDED', message, 410),
+  CannotKickSelf: (message: string = '不能踢自己') => new AppError('CANNOT_KICK_SELF', message, 422),
+  CannotKickAdmin: (message: string = '管理员不能踢管理员/群主') => new AppError('CANNOT_KICK_ADMIN', message, 422),
 };
 

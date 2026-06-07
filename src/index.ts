@@ -30,7 +30,7 @@ import {
 import { ChatRoom, handleWebSocket } from './ws';
 
 export default {
-  async fetch(request: Request, env: Env): Promise&lt;Response&gt; {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -47,100 +47,100 @@ export default {
       return serveStatic('index.html');
     }
 
-    if (request.method === 'POST' &amp;&amp; path === '/api/auth/register') {
+    if (request.method === 'POST' && path === '/api/auth/register') {
       return asyncHandler(handleRegister)(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path === '/api/auth/login') {
+    if (request.method === 'POST' && path === '/api/auth/login') {
       return asyncHandler(handleLogin)(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path === '/api/users/me') {
+    if (request.method === 'GET' && path === '/api/users/me') {
       return asyncHandler(handleGetMe)(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path.startsWith('/api/users/search')) {
+    if (request.method === 'GET' && path.startsWith('/api/users/search')) {
       return asyncHandler(handleSearchUsers)(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path === '/api/chats/private') {
+    if (request.method === 'GET' && path === '/api/chats/private') {
       return asyncHandler(handleGetPrivateChats)(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path === '/api/chats/private') {
+    if (request.method === 'POST' && path === '/api/chats/private') {
       return asyncHandler(handleCreatePrivateChat)(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path.startsWith('/api/chats/private/') &amp;&amp; path.endsWith('/messages')) {
+    if (request.method === 'GET' && path.startsWith('/api/chats/private/') && path.endsWith('/messages')) {
       const chatId = path.split('/')[4];
-      return asyncHandler((req, e) =&gt; handleGetPrivateChatMessages(req, e, chatId))(request, env);
+      return asyncHandler((req, e) => handleGetPrivateChatMessages(req, e, chatId))(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path.startsWith('/api/chats/private/') &amp;&amp; path.endsWith('/messages')) {
+    if (request.method === 'POST' && path.startsWith('/api/chats/private/') && path.endsWith('/messages')) {
       const chatId = path.split('/')[4];
-      return asyncHandler((req, e) =&gt; handleSendPrivateChatMessage(req, e, chatId))(request, env);
+      return asyncHandler((req, e) => handleSendPrivateChatMessage(req, e, chatId))(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path === '/api/groups') {
+    if (request.method === 'POST' && path === '/api/groups') {
       return asyncHandler(handleCreateGroup)(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path === '/api/groups') {
+    if (request.method === 'GET' && path === '/api/groups') {
       return asyncHandler(handleGetGroups)(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; !path.includes('/')) {
+    if (request.method === 'GET' && path.startsWith('/api/groups/') && !path.includes('/')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleGetGroup(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleGetGroup(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'PUT' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; !path.includes('/')) {
+    if (request.method === 'PUT' && path.startsWith('/api/groups/') && !path.includes('/')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleUpdateGroup(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleUpdateGroup(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'DELETE' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; !path.includes('/')) {
+    if (request.method === 'DELETE' && path.startsWith('/api/groups/') && !path.includes('/')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleDisbandGroup(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleDisbandGroup(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.endsWith('/join')) {
+    if (request.method === 'POST' && path.startsWith('/api/groups/') && path.endsWith('/join')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleJoinGroup(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleJoinGroup(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.endsWith('/leave')) {
+    if (request.method === 'POST' && path.startsWith('/api/groups/') && path.endsWith('/leave')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleLeaveGroup(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleLeaveGroup(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'DELETE' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.includes('/members/')) {
+    if (request.method === 'DELETE' && path.startsWith('/api/groups/') && path.includes('/members/')) {
       const parts = path.split('/');
       const groupId = parts[3];
       const userId = parts[5];
-      return asyncHandler((req, e) =&gt; handleKickMember(req, e, groupId, userId))(request, env);
+      return asyncHandler((req, e) => handleKickMember(req, e, groupId, userId))(request, env);
     }
 
-    if (request.method === 'PUT' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.endsWith('/owner')) {
+    if (request.method === 'PUT' && path.startsWith('/api/groups/') && path.endsWith('/owner')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleTransferOwner(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleTransferOwner(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'PUT' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.includes('/admins/')) {
+    if (request.method === 'PUT' && path.startsWith('/api/groups/') && path.includes('/admins/')) {
       const parts = path.split('/');
       const groupId = parts[3];
       const userId = parts[5];
-      return asyncHandler((req, e) =&gt; handleSetAdmin(req, e, groupId, userId))(request, env);
+      return asyncHandler((req, e) => handleSetAdmin(req, e, groupId, userId))(request, env);
     }
 
-    if (request.method === 'GET' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.endsWith('/messages')) {
+    if (request.method === 'GET' && path.startsWith('/api/groups/') && path.endsWith('/messages')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleGetGroupMessages(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleGetGroupMessages(req, e, groupId))(request, env);
     }
 
-    if (request.method === 'POST' &amp;&amp; path.startsWith('/api/groups/') &amp;&amp; path.endsWith('/messages')) {
+    if (request.method === 'POST' && path.startsWith('/api/groups/') && path.endsWith('/messages')) {
       const groupId = path.split('/')[3];
-      return asyncHandler((req, e) =&gt; handleSendGroupMessage(req, e, groupId))(request, env);
+      return asyncHandler((req, e) => handleSendGroupMessage(req, e, groupId))(request, env);
     }
 
     return new Response('Not found', { status: 404 });
@@ -152,23 +152,23 @@ export { ChatRoom };
 function serveStatic(file: string): Response {
   const assets: { [key: string]: string } = {
     'index.html': `
-&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;meta charset="utf-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-  &lt;title&gt;Cloudflare Chat&lt;/title&gt;
-  &lt;style&gt;
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloudflare Chat</title>
+  <style>
     ${cssContent}
-  &lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;div id="app"&gt;&lt;/div&gt;
-  &lt;script&gt;
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
     ${jsContent}
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+  </script>
+</body>
+</html>
     `
   };
 
@@ -249,19 +249,19 @@ function api(path, options = {}) {
   if (token) {
     headers['Authorization'] = 'Bearer ' + token;
   }
-  return fetch('/api' + path, { ...options, headers }).then(r =&gt; r.json());
+  return fetch('/api' + path, { ...options, headers }).then(r => r.json());
 }
 
 function renderAuthPage() {
   const app = document.getElementById('app');
   app.innerHTML = \`
-    &lt;div class="auth-page"&gt;
-      &lt;div class="auth-card"&gt;
-        &lt;h1&gt;Cloudflare Chat&lt;/h1&gt;
-        &lt;input type="text" id="nickname" placeholder="输入昵称" maxlength="20"&gt;
-        &lt;button onclick="handleAuth()"&gt;登录 / 注册&lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+    <div class="auth-page">
+      <div class="auth-card">
+        <h1>Cloudflare Chat</h1>
+        <input type="text" id="nickname" placeholder="输入昵称" maxlength="20">
+        <button onclick="handleAuth()">登录 / 注册</button>
+      </div>
+    </div>
   \`;
 }
 
@@ -271,7 +271,7 @@ async function handleAuth() {
   
   try {
     let result = await api('/auth/login', { method: 'POST', body: JSON.stringify({ nickname }) });
-    if (result.error &amp;&amp; result.error.code === 'NOT_FOUND') {
+    if (result.error && result.error.code === 'NOT_FOUND') {
       result = await api('/auth/register', { method: 'POST', body: JSON.stringify({ nickname }) });
     }
     if (result.error) {
@@ -291,25 +291,25 @@ async function handleAuth() {
 async function renderChatApp() {
   const app = document.getElementById('app');
   app.innerHTML = \`
-    &lt;div class="chat-app"&gt;
-      &lt;div class="sidebar" id="sidebar"&gt;
-        &lt;div class="sidebar-header"&gt;
-          &lt;h2&gt;\${currentUser.nickname}&lt;/h2&gt;
-        &lt;/div&gt;
-        &lt;button class="new-chat-btn" onclick="showNewChatModal()"&gt;+ 新建聊天&lt;/button&gt;
-        &lt;div class="chat-list" id="chatList"&gt;&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class="chat-main"&gt;
-        &lt;div class="chat-header" id="chatHeader"&gt;
-          &lt;h3&gt;选择聊天&lt;/h3&gt;
-        &lt;/div&gt;
-        &lt;div class="chat-messages" id="chatMessages"&gt;&lt;/div&gt;
-        &lt;div class="chat-input" id="chatInput" style="display: none;"&gt;
-          &lt;input type="text" id="messageInput" placeholder="输入消息..."&gt;
-          &lt;button onclick="sendMessage()"&gt;发送&lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+    <div class="chat-app">
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h2>\${currentUser.nickname}</h2>
+        </div>
+        <button class="new-chat-btn" onclick="showNewChatModal()">+ 新建聊天</button>
+        <div class="chat-list" id="chatList"></div>
+      </div>
+      <div class="chat-main">
+        <div class="chat-header" id="chatHeader">
+          <h3>选择聊天</h3>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input" id="chatInput" style="display: none;">
+          <input type="text" id="messageInput" placeholder="输入消息...">
+          <button onclick="sendMessage()">发送</button>
+        </div>
+      </div>
+    </div>
   \`;
   
   loadChats();
@@ -327,12 +327,12 @@ async function loadChats() {
   const chatList = document.getElementById('chatList');
   chatList.innerHTML = '';
   
-  privateChats.forEach(chat =&gt; {
+  privateChats.forEach(chat => {
     const name = chat.other_user ? chat.other_user.nickname : '私聊';
     addChatItem({ ...chat, name, type: 'private' });
   });
   
-  groups.forEach(group =&gt; {
+  groups.forEach(group => {
     addChatItem({ ...group, name: group.name, type: 'group' });
   });
 }
@@ -341,18 +341,18 @@ function addChatItem(chat) {
   const chatList = document.getElementById('chatList');
   const item = document.createElement('div');
   item.className = 'chat-item';
-  item.innerHTML = \`&lt;div class="chat-item-name"&gt;\${chat.name}&lt;/div&gt;\`;
-  item.onclick = () =&gt; selectChat(chat);
+  item.innerHTML = \`<div class="chat-item-name">\${chat.name}</div>\`;
+  item.onclick = () => selectChat(chat);
   chatList.appendChild(item);
 }
 
 async function selectChat(chat) {
   activeChat = chat;
   
-  document.querySelectorAll('.chat-item').forEach(el =&gt; el.classList.remove('active'));
+  document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
   event.target.closest('.chat-item').classList.add('active');
   
-  document.getElementById('chatHeader').innerHTML = \`&lt;h3&gt;\${chat.name}&lt;/h3&gt;\`;
+  document.getElementById('chatHeader').innerHTML = \`<h3>\${chat.name}</h3>\`;
   document.getElementById('chatInput').style.display = 'flex';
   
   const path = chat.type === 'private' ? \`/chats/private/\${chat.id}/messages\` : \`/groups/\${chat.id}/messages\`;
@@ -364,14 +364,14 @@ async function selectChat(chat) {
 function renderMessages(messages) {
   const container = document.getElementById('chatMessages');
   container.innerHTML = '';
-  messages.forEach(msg =&gt; {
+  messages.forEach(msg => {
     const isSent = msg.sender_id === currentUser.id;
     const div = document.createElement('div');
     div.className = \`message \${isSent ? 'sent' : ''}\`;
     div.innerHTML = \`
-      &lt;div class="message-sender"&gt;\${isSent ? '我' : msg.nickname}&lt;/div&gt;
-      &lt;div class="message-bubble"&gt;\${msg.content}&lt;/div&gt;
-      &lt;div class="message-time"&gt;\${new Date(msg.created_at * 1000).toLocaleString()}&lt;/div&gt;
+      <div class="message-sender">\${isSent ? '我' : msg.nickname}</div>
+      <div class="message-bubble">\${msg.content}</div>
+      <div class="message-time">\${new Date(msg.created_at * 1000).toLocaleString()}</div>
     \`;
     container.appendChild(div);
   });
@@ -397,12 +397,12 @@ function showNewChatModal() {
   modal.className = 'modal';
   modal.id = 'newChatModal';
   modal.innerHTML = \`
-    &lt;div class="modal-content"&gt;
-      &lt;h3&gt;新建聊天&lt;/h3&gt;
-      &lt;input type="text" id="newChatName" placeholder="输入用户名或群名称"&gt;
-      &lt;button class="btn-primary" onclick="createNewChat()"&gt;创建&lt;/button&gt;
-      &lt;button class="btn-secondary" onclick="closeModal()"&gt;取消&lt;/button&gt;
-    &lt;/div&gt;
+    <div class="modal-content">
+      <h3>新建聊天</h3>
+      <input type="text" id="newChatName" placeholder="输入用户名或群名称">
+      <button class="btn-primary" onclick="createNewChat()">创建</button>
+      <button class="btn-secondary" onclick="closeModal()">取消</button>
+    </div>
   \`;
   document.body.appendChild(modal);
 }
@@ -414,7 +414,7 @@ async function createNewChat() {
   const usersRes = await api(\`/users/search?q=\${encodeURIComponent(name)}\`);
   const users = usersRes.data || [];
   
-  if (users.length &gt; 0) {
+  if (users.length > 0) {
     await api('/chats/private', { method: 'POST', body: JSON.stringify({ target_user_id: users[0].id }) });
   } else {
     await api('/groups', { method: 'POST', body: JSON.stringify({ name }) });
@@ -428,7 +428,7 @@ function closeModal() {
   document.getElementById('newChatModal')?.remove();
 }
 
-document.addEventListener('keypress', (e) =&gt; {
+document.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     if (document.getElementById('messageInput') === document.activeElement) {
       sendMessage();
@@ -438,10 +438,10 @@ document.addEventListener('keypress', (e) =&gt; {
   }
 });
 
-window.onload = () =&gt; {
+window.onload = () => {
   token = localStorage.getItem('chat_token');
   const userStr = localStorage.getItem('chat_user');
-  if (token &amp;&amp; userStr) {
+  if (token && userStr) {
     currentUser = JSON.parse(userStr);
     renderChatApp();
   } else {

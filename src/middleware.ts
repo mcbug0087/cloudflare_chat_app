@@ -8,12 +8,12 @@ interface RequestWithUser extends Request {
   user?: User;
 }
 
-export async function authMiddleware(request: Request, env: Env): Promise&lt;User&gt; {
+export async function authMiddleware(request: Request, env: Env): Promise<User> {
   return await getUserFromRequest(request, env);
 }
 
-export function asyncHandler(handler: (request: Request, env: Env) =&gt; Promise&lt;Response&gt;): (request: Request, env: Env) =&gt; Promise&lt;Response&gt; {
-  return async (request: Request, env: Env) =&gt; {
+export function asyncHandler(handler: (request: Request, env: Env) => Promise<Response>): (request: Request, env: Env) => Promise<Response> {
+  return async (request: Request, env: Env) => {
     try {
       return await handler(request, env);
     } catch (e) {

@@ -5,12 +5,12 @@ import { authMiddleware } from './middleware';
 import { createSuccessResponse } from './errors';
 import { Errors } from './errors';
 
-export async function handleCreateGroup(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleCreateGroup(request: Request, env: Env): Promise<Response> {
   const user = await authMiddleware(request, env);
-  const body = await request.json&lt;any&gt;();
+  const body = await request.json<any>();
   const { name } = body;
 
-  if (!name || name.length &lt; 1 || name.length &gt; 50) {
+  if (!name || name.length < 1 || name.length > 50) {
     throw Errors.InvalidParams('群名称长度必须在 1-50 个字符之间');
   }
 
@@ -19,14 +19,14 @@ export async function handleCreateGroup(request: Request, env: Env): Promise&lt;
   return createSuccessResponse(group);
 }
 
-export async function handleGetGroups(request: Request, env: Env): Promise&lt;Response&gt; {
+export async function handleGetGroups(request: Request, env: Env): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
   const groups = await db.getUserGroups(user.id);
   return createSuccessResponse(groups);
 }
 
-export async function handleGetGroup(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleGetGroup(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -44,9 +44,9 @@ export async function handleGetGroup(request: Request, env: Env, groupId: string
   return createSuccessResponse({ group, members });
 }
 
-export async function handleUpdateGroup(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleUpdateGroup(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
-  const body = await request.json&lt;any&gt;();
+  const body = await request.json<any>();
   const { name } = body;
 
   const db = new DB(env.DB);
@@ -60,7 +60,7 @@ export async function handleUpdateGroup(request: Request, env: Env, groupId: str
   }
 
   const member = await db.getGroupMember(groupId, user.id);
-  if (!member || (member.role !== 'owner' &amp;&amp; member.role !== 'admin')) {
+  if (!member || (member.role !== 'owner' && member.role !== 'admin')) {
     throw Errors.Forbidden();
   }
 
@@ -78,7 +78,7 @@ export async function handleUpdateGroup(request: Request, env: Env, groupId: str
   return createSuccessResponse(updatedGroup);
 }
 
-export async function handleDisbandGroup(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleDisbandGroup(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -108,7 +108,7 @@ export async function handleDisbandGroup(request: Request, env: Env, groupId: st
   return createSuccessResponse({ success: true });
 }
 
-export async function handleJoinGroup(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleJoinGroup(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -139,7 +139,7 @@ export async function handleJoinGroup(request: Request, env: Env, groupId: strin
   return createSuccessResponse({ success: true });
 }
 
-export async function handleLeaveGroup(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleLeaveGroup(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -170,7 +170,7 @@ export async function handleLeaveGroup(request: Request, env: Env, groupId: stri
   return createSuccessResponse({ success: true });
 }
 
-export async function handleKickMember(request: Request, env: Env, groupId: string, targetUserId: string): Promise&lt;Response&gt; {
+export async function handleKickMember(request: Request, env: Env, groupId: string, targetUserId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -219,9 +219,9 @@ export async function handleKickMember(request: Request, env: Env, groupId: stri
   return createSuccessResponse({ success: true });
 }
 
-export async function handleTransferOwner(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleTransferOwner(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
-  const body = await request.json&lt;any&gt;();
+  const body = await request.json<any>();
   const { new_owner_id } = body;
 
   const db = new DB(env.DB);
@@ -258,7 +258,7 @@ export async function handleTransferOwner(request: Request, env: Env, groupId: s
   return createSuccessResponse({ success: true });
 }
 
-export async function handleSetAdmin(request: Request, env: Env, groupId: string, targetUserId: string): Promise&lt;Response&gt; {
+export async function handleSetAdmin(request: Request, env: Env, groupId: string, targetUserId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -294,7 +294,7 @@ export async function handleSetAdmin(request: Request, env: Env, groupId: string
   return createSuccessResponse({ success: true });
 }
 
-export async function handleGetGroupMessages(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleGetGroupMessages(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
   const db = new DB(env.DB);
 
@@ -316,12 +316,12 @@ export async function handleGetGroupMessages(request: Request, env: Env, groupId
   return createSuccessResponse(messages);
 }
 
-export async function handleSendGroupMessage(request: Request, env: Env, groupId: string): Promise&lt;Response&gt; {
+export async function handleSendGroupMessage(request: Request, env: Env, groupId: string): Promise<Response> {
   const user = await authMiddleware(request, env);
-  const body = await request.json&lt;any&gt;();
+  const body = await request.json<any>();
   const { content } = body;
 
-  if (!content || content.length &gt; 5000) {
+  if (!content || content.length > 5000) {
     throw Errors.InvalidParams('消息内容不能为空且不能超过5000字符');
   }
 

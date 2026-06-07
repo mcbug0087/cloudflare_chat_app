@@ -5,10 +5,10 @@ import { Errors } from './errors';
 
 const TOKEN_EXPIRE_SECONDS = 7 * 24 * 60 * 60;
 
-export async function register(nickname: string, env: Env): Promise&lt;AuthResult&gt; {
+export async function register(nickname: string, env: Env): Promise<AuthResult> {
   const db = new DB(env.DB);
 
-  if (!nickname || nickname.length &lt; 1 || nickname.length &gt; 20) {
+  if (!nickname || nickname.length < 1 || nickname.length > 20) {
     throw Errors.InvalidParams('昵称长度必须在 1-20 个字符之间');
   }
 
@@ -23,7 +23,7 @@ export async function register(nickname: string, env: Env): Promise&lt;AuthResul
   return { token, user };
 }
 
-export async function login(nickname: string, env: Env): Promise&lt;AuthResult&gt; {
+export async function login(nickname: string, env: Env): Promise<AuthResult> {
   const db = new DB(env.DB);
 
   const user = await db.getUserByNickname(nickname);
@@ -36,13 +36,13 @@ export async function login(nickname: string, env: Env): Promise&lt;AuthResult&g
   return { token, user };
 }
 
-async function createSession(userId: string, env: Env): Promise&lt;string&gt; {
+async function createSession(userId: string, env: Env): Promise<string> {
   const token = generateId();
   await env.CHAT_KV.put(`session:${token}`, userId, { expirationTtl: TOKEN_EXPIRE_SECONDS });
   return token;
 }
 
-export async function validateToken(token: string, env: Env): Promise&lt;User | null&gt; {
+export async function validateToken(token: string, env: Env): Promise<User | null> {
   const userId = await env.CHAT_KV.get(`session:${token}`);
   if (!userId) return null;
 
@@ -50,7 +50,7 @@ export async function validateToken(token: string, env: Env): Promise&lt;User | 
   return await db.getUserById(userId);
 }
 
-export async function getUserFromRequest(request: Request, env: Env): Promise&lt;User&gt; {
+export async function getUserFromRequest(request: Request, env: Env): Promise<User> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw Errors.Unauthorized();
