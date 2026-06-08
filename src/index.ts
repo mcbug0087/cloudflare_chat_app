@@ -1,7 +1,8 @@
 import { Env } from './types';
 import { asyncHandler } from './middleware';
 import {
-  handleRegister, handleLogin, handleGetMe, handleSearchUsers
+  handleRegister, handleLogin, handleGetMe, handleSearchUsers,
+  handleChangePassword, handleDeleteAccount, handleChangeNickname
 } from './users';
 import {
   handleGetPrivateChats, handleCreatePrivateChat,
@@ -17,6 +18,12 @@ import {
 import {
   handleGetFriends, handleAddFriend, handleRemoveFriend, handleUpdateRemark
 } from './friends';
+import {
+  handleAdminGetUsers, handleAdminGetGroups,
+  handleAdminBanUser, handleAdminUnbanUser,
+  handleAdminDeleteUser, handleAdminChangeUserPassword,
+  handleAdminDisbandGroup, handleAdminUpdateSettings
+} from './admin';
 import { ChatRoom, handleWebSocket } from './ws';
 
 export default {
@@ -30,10 +37,13 @@ export default {
     // Auth
     if (request.method === 'POST' && path === '/api/auth/register') return asyncHandler(handleRegister)(request, env);
     if (request.method === 'POST' && path === '/api/auth/login') return asyncHandler(handleLogin)(request, env);
+    if (request.method === 'POST' && path === '/api/auth/change-password') return asyncHandler(handleChangePassword)(request, env);
+    if (request.method === 'DELETE' && path === '/api/auth/delete-account') return asyncHandler(handleDeleteAccount)(request, env);
 
     // Users
     if (request.method === 'GET' && path === '/api/users/me') return asyncHandler(handleGetMe)(request, env);
     if (request.method === 'GET' && path.startsWith('/api/users/search')) return asyncHandler(handleSearchUsers)(request, env);
+    if (request.method === 'PUT' && path === '/api/users/me/nickname') return asyncHandler(handleChangeNickname)(request, env);
 
     // Friends
     if (request.method === 'GET' && path === '/api/friends') return asyncHandler(handleGetFriends)(request, env);
@@ -55,6 +65,28 @@ export default {
     }
     if (request.method === 'POST' && path.startsWith('/api/chats/private/') && path.endsWith('/messages')) {
       return asyncHandler((req, e) => handleSendPrivateChatMessage(req, e, path.split('/')[4]))(request, env);
+    }
+
+    // Admin API
+    if (path.startsWith('/api/admin/')) {
+      if (request.method === 'GET' && path === '/api/admin/users') return asyncHandler(handleAdminGetUsers)(request, env);
+      if (request.method === 'GET' && path === '/api/admin/groups') return asyncHandler(handleAdminGetGroups)(request, env);
+      if (request.method === 'PUT' && path === '/api/admin/settings') return asyncHandler(handleAdminUpdateSettings)(request, env);
+      if (request.method === 'POST' && path.startsWith('/api/admin/ban/')) {
+        return asyncHandler((req, e) => handleAdminBanUser(req, e, path.split('/')[4]))(request, env);
+      }
+      if (request.method === 'POST' && path.startsWith('/api/admin/unban/')) {
+        return asyncHandler((req, e) => handleAdminUnbanUser(req, e, path.split('/')[4]))(request, env);
+      }
+      if (request.method === 'DELETE' && path.startsWith('/api/admin/users/')) {
+        return asyncHandler((req, e) => handleAdminDeleteUser(req, e, path.split('/')[4]))(request, env);
+      }
+      if (request.method === 'PUT' && path.startsWith('/api/admin/users/') && path.endsWith('/password')) {
+        return asyncHandler((req, e) => handleAdminChangeUserPassword(req, e, path.split('/')[4]))(request, env);
+      }
+      if (request.method === 'DELETE' && path.startsWith('/api/admin/groups/')) {
+        return asyncHandler((req, e) => handleAdminDisbandGroup(req, e, path.split('/')[4]))(request, env);
+      }
     }
 
     // Group search by code
@@ -254,6 +286,13 @@ async function doLogin(){
     if(r.error){toast(r.error.message);return}
     setToken(r.data.token,r.data.user);
     renderApp();
+    if(r.data.defaultPassword){
+      setTimeout(()=>{
+        toast('检测到默认密码，请立即修改！');
+        const np=prompt('您的密码仍为默认值，请输入新密码（至少6位）：');
+        if(np&&np.length>=6)changeDefaultPassword(np);
+      },500);
+    }
   }catch(e){toast('登录失败')}
 }
 
@@ -564,12 +603,85 @@ async function showCreateGroup(){
 
 //PROFILE
 function showProfile(){
-  const html=\`<div class="modal-mask" id="profileModal" onclick="if(event.target===this)closeModal('profileModal')"><div class="modal-box"><h3>个人信息</h3>
-    <p style="margin:8px 0;font-size:14px">昵称：\${currentUser.nickname}</p>
-    <p style="margin:8px 0;font-size:14px;color:#666">ID：\${currentUser.id}</p>
-    <button class="btn btn-secondary" onclick="closeModal('profileModal')">关闭</button></div></div>\`;
+  let html=\`<div class="modal-mask" id="profileModal" onclick="if(event.target===this)closeModal('profileModal')"><div class="modal-box"><h3>个人信息</h3>
+    <p style="margin:8px 0;font-size:14px">昵称：\${escHtml(currentUser.nickname)}</p>
+    <p style="margin:8px 0;font-size:14px;color:#666">ID：\${escHtml(currentUser.id)}</p>
+    <p style="margin:8px 0;font-size:14px;color:#666">角色：\${currentUser.role==='super_admin'?'超级管理员':'普通用户'}</p>\`;
+  html+=\`<div style="margin:16px 0"><button class="btn btn-sm btn-primary" onclick="showChangeNickname()">修改昵称</button>
+    <button class="btn btn-sm btn-secondary" onclick="showChangePassword()">修改密码</button>
+    <button class="btn btn-sm btn-danger" onclick="confirmDeleteAccount()">注销账号</button></div>\`;
+  if(currentUser.role==='super_admin'){
+    html+=\`<button class="btn btn-sm btn-primary" onclick="showAdminPanel()" style="width:100%;margin-top:8px">管理面板</button>\`;
+  }
+  html+=\`<button class="btn btn-secondary" onclick="closeModal('profileModal')" style="margin-top:12px">关闭</button></div></div>\`;
   document.body.insertAdjacentHTML('beforeend',html);
 }
+
+async function showChangeNickname(){
+  const nn=prompt('输入新昵称（1-20字符，不能与他人重复）：',currentUser.nickname);
+  if(!nn||nn.length>20||nn===currentUser.nickname)return;
+  const r=await api('/users/me/nickname',{method:'PUT',body:JSON.stringify({nickname:nn})});
+  if(r.error){toast(r.error.message);return}
+  currentUser=r.data;localStorage.setItem('chat_user',JSON.stringify(currentUser));
+  toast('昵称已修改');closeModal('profileModal');
+}
+
+async function showChangePassword(){
+  const oldPw=prompt('请输入旧密码：');if(!oldPw)return;
+  const newPw=prompt('请输入新密码（至少6位）：');if(!newPw||newPw.length<6){toast('密码至少6位');return}
+  const r=await api('/auth/change-password',{method:'POST',body:JSON.stringify({old_password:oldPw,new_password:newPw})});
+  if(r.error){toast(r.error.message);return}
+  toast('密码已修改');closeModal('profileModal');
+}
+
+async function confirmDeleteAccount(){
+  if(!confirm('确认注销账号？此操作不可撤销！'))return;
+  const pw=prompt('请输入密码确认：');if(!pw)return;
+  const r=await api('/auth/delete-account',{method:'DELETE',body:JSON.stringify({password:pw})});
+  if(r.error){toast(r.error.message);return}
+  toast('账号已注销');clearToken();renderAuth();
+}
+
+async function changeDefaultPassword(np){
+  const r=await api('/auth/change-password',{method:'POST',body:JSON.stringify({old_password:'123456',new_password:np})});
+  if(r.error){toast(r.error.message);return}
+  toast('密码已修改');
+}
+
+async function showAdminPanel(){
+  closeModal('profileModal');
+  const usersR=await api('/admin/users');
+  const groupsR=await api('/admin/groups');
+  const users=usersR.data||[],groups=groupsR.data||[];
+  let html=\`<div class="modal-mask" id="adminModal" onclick="if(event.target===this)closeModal('adminModal')"><div class="modal-box" style="max-width:600px"><h3>管理面板</h3>
+    <h4 style="margin:12px 0 8px;font-size:14px">用户列表 (\${users.length})</h4><div class="member-list">\`;
+  users.forEach(u=>{
+    const banned=u.is_banned?'（已封禁）':'';
+    const roleTag=u.role==='super_admin'?'<span class="role-badge role-owner">管理员</span>':'';
+    html+=\`<div class="member-item"><div><span class="name">\${escHtml(u.nickname)}\${banned}</span>\${roleTag}</div><div>\`;
+    if(u.role!=='super_admin'){
+      if(u.is_banned)html+=\`<button class="btn btn-sm btn-green" onclick="adminUnban('\${u.id}')">解封</button> \`;
+      else html+=\`<button class="btn btn-sm btn-danger" onclick="adminBan('\${u.id}')">封禁</button> \`;
+      html+=\`<button class="btn btn-sm btn-secondary" onclick="adminChgPw('\${u.id}')">改密</button> \`;
+      html+=\`<button class="btn btn-sm btn-danger" onclick="adminDelUser('\${u.id}')">删除</button>\`;
+    }
+    html+=\`</div></div>\`;
+  });
+  html+=\`</div><h4 style="margin:12px 0 8px;font-size:14px">群聊列表 (\${groups.length})</h4><div class="member-list">\`;
+  groups.forEach(g=>{
+    html+=\`<div class="member-item"><div><span class="name">\${escHtml(g.name)}</span><div class="chat-item-sub">群号:\${g.group_code} \${g.is_active?'':'已解散'}</div></div>\`;
+    if(g.is_active)html+=\`<button class="btn btn-sm btn-danger" onclick="adminDisband('\${g.id}')">解散</button>\`;
+    html+=\`</div>\`;
+  });
+  html+=\`</div><button class="btn btn-secondary" onclick="closeModal('adminModal')" style="margin-top:12px">关闭</button></div></div>\`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+async function adminBan(uid){const r=await api('/admin/ban/'+uid,{method:'POST'});if(r.error){toast(r.error.message);return}toast('已封禁');closeModal('adminModal');showAdminPanel()}
+async function adminUnban(uid){const r=await api('/admin/unban/'+uid,{method:'POST'});if(r.error){toast(r.error.message);return}toast('已解封');closeModal('adminModal');showAdminPanel()}
+async function adminDelUser(uid){if(!confirm('确认删除该用户？此操作不可撤销！'))return;const r=await api('/admin/users/'+uid,{method:'DELETE'});if(r.error){toast(r.error.message);return}toast('已删除');closeModal('adminModal');showAdminPanel()}
+async function adminChgPw(uid){const np=prompt('输入新密码（至少6位）：');if(!np||np.length<6){toast('密码至少6位');return}const r=await api('/admin/users/'+uid+'/password',{method:'PUT',body:JSON.stringify({new_password:np})});if(r.error){toast(r.error.message);return}toast('密码已修改')}
+async function adminDisband(gid){if(!confirm('确认解散该群？所有聊天记录将被删除！'))return;const r=await api('/admin/groups/'+gid,{method:'DELETE'});if(r.error){toast(r.error.message);return}toast('群已解散');closeModal('adminModal');showAdminPanel()}
 
 function closeModal(id){document.getElementById(id)?.remove()}
 

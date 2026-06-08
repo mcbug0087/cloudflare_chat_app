@@ -3,8 +3,13 @@ CREATE TABLE users (
   nickname TEXT NOT NULL UNIQUE COLLATE NOCASE,
   nickname_lower TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('member','super_admin')),
+  is_banned INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
+
+INSERT INTO users (id, nickname, nickname_lower, password_hash, role)
+VALUES ('admin-seed-0001', 'admin', 'admin', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'super_admin');
 
 CREATE TABLE friends (
   user_id TEXT NOT NULL REFERENCES users(id),

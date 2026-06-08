@@ -3,6 +3,8 @@ export interface User {
   nickname: string;
   nickname_lower: string;
   password_hash: string;
+  role: 'member' | 'super_admin';
+  is_banned: number;
   created_at: number;
 }
 
@@ -71,6 +73,7 @@ export interface Env {
 export interface AuthResult {
   token: string;
   user: User;
+  defaultPassword?: boolean;
 }
 
 export interface ApiResponse<T = any> {

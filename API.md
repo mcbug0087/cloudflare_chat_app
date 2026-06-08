@@ -5,6 +5,8 @@
 - 除注册和登录外，所有请求需在 Header 中携带 `Authorization: Bearer <token>`
 - 所有响应格式为 `{ data?: any, error?: { code: string, message: string } }`
 
+---
+
 ## 认证接口
 
 ### 注册用户
@@ -20,8 +22,27 @@ Response: { "data": { "token": "...", "user": { ... } } }
 POST /api/auth/login
 Content-Type: application/json
 { "nickname": "用户昵称", "password": "密码" }
-Response: 同注册
+Response: { "data": { "token": "...", "user": { ... }, "defaultPassword": true|false } }
 ```
+> 超级管理员登录时若密码仍为 `123456`，`defaultPassword` 为 `true`。
+
+### 修改密码
+```
+POST /api/auth/change-password
+Content-Type: application/json
+{ "old_password": "旧密码", "new_password": "新密码（至少6位）" }
+```
+鉴权：Bearer Token
+
+### 注销账号
+```
+DELETE /api/auth/delete-account
+Content-Type: application/json
+{ "password": "当前密码" }
+```
+鉴权：Bearer Token。超级管理员不能注销自己。
+
+---
 
 ## 用户接口
 
@@ -30,6 +51,15 @@ Response: 同注册
 
 ### 搜索用户
 `GET /api/users/search?q=关键词`
+
+### 修改昵称
+```
+PUT /api/users/me/nickname
+{ "nickname": "新昵称（1-20字符）" }
+```
+鉴权：Bearer Token。不能与他人重复。
+
+---
 
 ## 好友接口
 
@@ -52,6 +82,8 @@ PUT /api/friends/:friendId/remark
 { "remark": "新备注" }
 ```
 
+---
+
 ## 私聊接口
 
 ### 获取私聊列表
@@ -71,6 +103,8 @@ POST /api/chats/private
 POST /api/chats/private/:chatId/messages
 { "content": "消息内容" }
 ```
+
+---
 
 ## 群聊接口
 
@@ -147,6 +181,46 @@ POST /api/groups/:groupId/messages
 ```
 发送者若有群昵称则显示群昵称
 
+---
+
+## 超级管理员接口
+
+所有 `/api/admin/*` 接口均需超级管理员权限（`role: "super_admin"`）。
+
+### 获取所有用户
+`GET /api/admin/users`
+
+### 获所有群聊
+`GET /api/admin/groups`
+
+### 修改管理员设置
+```
+PUT /api/admin/settings
+{ "nickname": "新昵称（可选）", "new_password": "新密码（可选）" }
+```
+
+### 封禁用户
+`POST /api/admin/ban/:userId`
+
+### 解封用户
+`POST /api/admin/unban/:userId`
+
+### 删除用户账号
+`DELETE /api/admin/users/:userId`
+不能删除超级管理员。
+
+### 修改用户密码
+```
+PUT /api/admin/users/:userId/password
+{ "new_password": "新密码（至少6位）" }
+```
+
+### 解散任意群聊
+`DELETE /api/admin/groups/:groupId`
+解散后删除该群所有消息。
+
+---
+
 ## WebSocket 协议
 
 ### 连接
@@ -168,16 +242,29 @@ POST /api/groups/:groupId/messages
 { "type": "group_update", "chat_id": "xxx", "action": "name_change|member_join|member_leave|member_kicked|owner_change|admin_change|disband", "data": { ... } }
 ```
 
+---
+
 ## 错误码
 | 状态码 | 错误码 | 说明 |
 |--------|--------|------|
 | 400 | INVALID_PARAMS | 参数校验失败 |
+| 400 | WEAK_PASSWORD | 密码强度不足 |
 | 401 | UNAUTHORIZED | Token 无效或过期 |
 | 401 | WRONG_PASSWORD | 密码错误 |
 | 403 | FORBIDDEN | 无操作权限 |
+| 403 | ACCOUNT_BANNED | 账号已被封禁 |
+| 403 | DEFAULT_PASSWORD | 请修改默认密码 |
 | 404 | NOT_FOUND | 资源不存在 |
 | 409 | NICKNAME_TAKEN | 昵称已被占用 |
 | 410 | GROUP_DISBANDED | 群聊已解散 |
 | 422 | CANNOT_KICK_SELF | 不能踢自己 |
 | 422 | CANNOT_KICK_ADMIN | 管理员不能踢管理员/群主 |
 | 500 | INTERNAL_ERROR | 服务器内部错误 |
+
+---
+
+## 超级管理员默认账号
+
+- 昵称：`admin`
+- 默认密码：`123456`
+- 首次登录后建议修改密码
