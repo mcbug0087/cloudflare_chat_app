@@ -32,15 +32,49 @@ export class DB {
 
   async searchUsers(query: string): Promise<User[]> {
     const searchTerm = `%${query.toLowerCase()}%`;
-    const result = await this.db.prepare('SELECT * FROM users WHERE nickname_lower LIKE ? LIMIT 20').bind(searchTerm).all<User>();
+    const result = await this.db.prepare('SELECT id, nickname, nickname_lower, role, is_banned, created_at FROM users WHERE nickname_lower LIKE ? LIMIT 20').bind(searchTerm).all<User>();
     return result.results;
   }
 
-  async createUser(nickname: string, passwordHash: string): Promise<User> {
+  async createUser(nickname: string, passwordHash: string, role: string = 'member'): Promise<User> {
     const id = generateId();
     const nicknameLower = nickname.toLowerCase();
-    await this.db.prepare('INSERT INTO users (id, nickname, nickname_lower, password_hash) VALUES (?, ?, ?, ?)').bind(id, nickname, nicknameLower, passwordHash).run();
+    await this.db.prepare('INSERT INTO users (id, nickname, nickname_lower, password_hash, role) VALUES (?, ?, ?, ?, ?)').bind(id, nickname, nicknameLower, passwordHash, role).run();
     return this.getUserById(id) as Promise<User>;
+  }
+
+  async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+    await this.db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(passwordHash, userId).run();
+  }
+
+  async updateUserNickname(userId: string, nickname: string): Promise<void> {
+    const nicknameLower = nickname.toLowerCase();
+    await this.db.prepare('UPDATE users SET nickname = ?, nickname_lower = ? WHERE id = ?').bind(nickname, nicknameLower, userId).run();
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM friends WHERE user_id = ? OR friend_id = ?').bind(userId, userId).run();
+    await this.db.prepare('DELETE FROM messages WHERE sender_id = ?').bind(userId).run();
+    await this.db.prepare('DELETE FROM group_members WHERE user_id = ?').bind(userId).run();
+    await this.db.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
+  }
+
+  async banUser(userId: string): Promise<void> {
+    await this.db.prepare('UPDATE users SET is_banned = 1 WHERE id = ?').bind(userId).run();
+  }
+
+  async unbanUser(userId: string): Promise<void> {
+    await this.db.prepare('UPDATE users SET is_banned = 0 WHERE id = ?').bind(userId).run();
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    const result = await this.db.prepare('SELECT id, nickname, nickname_lower, role, is_banned, created_at FROM users ORDER BY created_at DESC').all<User>();
+    return result.results;
+  }
+
+  async getAllGroups(): Promise<Group[]> {
+    const result = await this.db.prepare('SELECT * FROM groups ORDER BY created_at DESC').all<Group>();
+    return result.results;
   }
 
   async getPrivateChat(user1Id: string, user2Id: string): Promise<PrivateChat | null> {

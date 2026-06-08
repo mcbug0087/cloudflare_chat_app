@@ -43,5 +43,8 @@ export const Errors = {
   CannotKickSelf: (message: string = '不能踢自己') => new AppError('CANNOT_KICK_SELF', message, 422),
   CannotKickAdmin: (message: string = '管理员不能踢管理员/群主') => new AppError('CANNOT_KICK_ADMIN', message, 422),
   WrongPassword: (message: string = '密码错误') => new AppError('WRONG_PASSWORD', message, 401),
+  Banned: (message: string = '该账号已被封禁') => new AppError('ACCOUNT_BANNED', message, 403),
+  DefaultPassword: (message: string = '请修改默认密码') => new AppError('DEFAULT_PASSWORD', message, 403),
+  WeakPassword: (message: string = '密码强度不足') => new AppError('WEAK_PASSWORD', message, 400),
 };
 
