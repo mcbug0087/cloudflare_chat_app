@@ -15,14 +15,22 @@
 ## 功能
 
 - 用户注册/登录（密码认证，SHA-256 哈希）
+- 修改昵称、修改密码、注销账号
 - 好友系统（添加、删除、备注）
 - 私聊
 - 群聊（创建、加入、退出、解散）
 - 群号（9位随机数字，可通过群号搜索加入）
 - 群管理（邀请好友、踢人、设置管理员、转让群主、群昵称）
+- 超级管理员系统（封禁/解封用户、删除用户、修改用户密码、解散任意群）
 - 实时消息推送（WebSocket）
 - 移动端适配
 - 所有 API 鉴权
+
+## 超级管理员
+
+- 默认昵称：`admin`
+- 默认密码：`123456`
+- 首次登录建议修改密码
 
 ## 项目结构
 
@@ -30,6 +38,7 @@
 ├── wrangler.toml              # Wrangler 配置
 ├── package.json
 ├── tsconfig.json
+├── README.md
 ├── API.md                     # API 接口文档
 ├── migrations/
 │   └── 0001_init.sql          # D1 数据库初始化
@@ -44,6 +53,7 @@
 │   ├── chats.ts               # 私聊 API
 │   ├── groups.ts              # 群聊 API
 │   ├── friends.ts             # 好友 API
+│   ├── admin.ts               # 超级管理员 API
 │   └── ws.ts                  # WebSocket / Durable Object
 └── .github/
     └── workflows/
