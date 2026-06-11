@@ -54,7 +54,9 @@ export class DB {
 
   async deleteUser(userId: string): Promise<void> {
     await this.db.prepare('DELETE FROM friends WHERE user_id = ? OR friend_id = ?').bind(userId, userId).run();
+    await this.db.prepare('DELETE FROM invitations WHERE inviter_id = ? OR invitee_id = ?').bind(userId, userId).run();
     await this.db.prepare('DELETE FROM messages WHERE sender_id = ?').bind(userId).run();
+    await this.db.prepare('DELETE FROM private_chats WHERE user1_id = ? OR user2_id = ?').bind(userId, userId).run();
     await this.db.prepare('DELETE FROM group_members WHERE user_id = ?').bind(userId).run();
     await this.db.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
   }
