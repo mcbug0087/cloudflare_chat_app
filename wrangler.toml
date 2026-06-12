@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "chat-db"
-database_id = "eee9c6cd-a4f1-4597-ba76-a8396ed2e2e6"
+database_id = "ac4b55a6-25ad-4931-9021-2f73c098fa83"
 
 [[kv_namespaces]]
 binding = "CHAT_KV"
