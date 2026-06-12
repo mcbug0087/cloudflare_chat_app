@@ -423,7 +423,7 @@ async function openChat(chat){
     document.getElementById('chatActions').innerHTML='';
   }
   
-  const path=chatType==='private'?`/chats/private/${chatId}/messages`:`/groups/${chatId}/messages`;
+  const path=chatType==='private'?'/chats/private/'+chatId+'/messages':'/groups/'+chatId+'/messages';
   const r=await api(path);
   renderMsgs((r.data||[]).reverse());
 }
