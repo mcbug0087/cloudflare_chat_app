@@ -396,22 +396,34 @@ function chatItemEl(chat){
 }
 
 async function openChat(chat){
-  activeChat=chat;closeSidebar();
+  closeSidebar();
   document.querySelectorAll('.chat-item').forEach(el=>el.classList.remove('active'));
   const evt=window.event;if(evt){const tgt=evt.target.closest('.chat-item');if(tgt)tgt.classList.add('active')}
-  
+
+  let chatId=chat.id,chatType=chat.type;
+
+  if(chat.friendData){
+    const cr=await api('/chats/private',{method:'POST',body:JSON.stringify({target_user_id:chat.friendData.id})});
+    if(cr.error){toast(cr.error.message);return}
+    const c=cr.data;
+    chatId=c.id;chatType='private';
+    activeChat={id:chatId,type:'private',name:chat.name,other_user:c.other_user,isFriend:true};
+  }else{
+    activeChat={...chat};
+  }
+
   const title=chat.name||'聊天';
   document.getElementById('chatTitle').textContent=title;
   document.getElementById('inputArea').style.display='flex';
   document.getElementById('msgInput').focus();
   
-  if(chat.type==='group'){
-    await loadGroupActions(chat.id);
+  if(chatType==='group'){
+    await loadGroupActions(chatId);
   }else{
     document.getElementById('chatActions').innerHTML='';
   }
   
-  const path=chat.type==='private'?\`/chats/private/\${chat.id}/messages\`:\`/groups/\${chat.id}/messages\`;
+  const path=chatType==='private'?`/chats/private/${chatId}/messages`:`/groups/${chatId}/messages`;
   const r=await api(path);
   renderMsgs((r.data||[]).reverse());
 }
